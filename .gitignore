@@ -1,0 +1,13 @@
+__pycache__/
+.DS_Store
+.venv/
+.vscode/
+
+p-o-y-1.0.0/
+
+hotelio-monolith/bin/
+hotelio-monolith/build/
+hotelio-monolith/.gradle/
+
+node_modules
+package-lock.json

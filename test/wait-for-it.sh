@@ -1,10 +1,13 @@
+#!/bin/bash
+
 HOST=$1
 shift
 TIMEOUT="${1:-15}"
 
 echo "Waiting for $HOST for up to $TIMEOUT seconds..."
-for i in $(seq $TIMEOUT); do
-  nc -z ${HOST/:/ } && echo "✅ $HOST is up!" && exit 0
+for _ in $(seq "$TIMEOUT"); do
+  # shellcheck disable=SC2086
+  nc -z ${HOST//:/ } && echo "✅ $HOST is up!" && exit 0
   sleep 1
 done
 

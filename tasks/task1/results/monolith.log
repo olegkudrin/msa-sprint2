@@ -1,0 +1,64 @@
+Выдержки из лога сервиса monolith по тестам бронирования
+--------------------------------------------------------
+
+Вызовы поступают по HTTP со стороны regress.sh.
+
+docker compose logs --no-log-prefix monolith
+
+Вызовы чтения никак не отображаются в логе монолита.
+
+# 3. Успешное бронирование отеля без промо
+
+2025-09-06T10:01:34.821Z  INFO 1 --- [nio-8080-exec-6] c.h.monolith.service.BookingService      : Creating booking: userId=test-user-3, hotelId=test-hotel-1, promoCode=null
+Hibernate: select au1_0.id,au1_0.active,au1_0.blacklisted,au1_0.city,au1_0.email,au1_0.name,au1_0.status from app_user au1_0 where au1_0.id=?
+Hibernate: select h1_0.id,h1_0.city,h1_0.description,h1_0.fully_booked,h1_0.operational,h1_0.rating from hotel h1_0 where h1_0.id=?
+Hibernate: select r1_0.id,r1_0.created_at,r1_0.hotel_id,r1_0.rating,r1_0.text,r1_0.user_id from review r1_0 where r1_0.hotel_id=?
+2025-09-06T10:01:34.826Z  INFO 1 --- [nio-8080-exec-6] c.h.monolith.service.BookingService      : Final price calculated: base=80.0, discount=0.0, final=80.0
+Hibernate: insert into booking (created_at,discount_percent,hotel_id,price,promo_code,user_id) values (?,?,?,?,?,?)
+
+# 4. Успешное бронирование с промо
+
+2025-09-06T10:01:34.843Z  INFO 1 --- [nio-8080-exec-8] c.h.monolith.service.BookingService      : Creating booking: userId=test-user-2, hotelId=test-hotel-1, promoCode=TESTCODE1
+Hibernate: select au1_0.id,au1_0.active,au1_0.blacklisted,au1_0.city,au1_0.email,au1_0.name,au1_0.status from app_user au1_0 where au1_0.id=?
+Hibernate: select h1_0.id,h1_0.city,h1_0.description,h1_0.fully_booked,h1_0.operational,h1_0.rating from hotel h1_0 where h1_0.id=?
+Hibernate: select r1_0.id,r1_0.created_at,r1_0.hotel_id,r1_0.rating,r1_0.text,r1_0.user_id from review r1_0 where r1_0.hotel_id=?
+Hibernate: select pc1_0.code,pc1_0.description,pc1_0.discount,pc1_0.expired,pc1_0.valid_until,pc1_0.vip_only from promo_code pc1_0 where pc1_0.code=?
+2025-09-06T10:01:34.848Z  INFO 1 --- [nio-8080-exec-8] c.h.monolith.service.BookingService      : Final price calculated: base=100.0, discount=10.0, final=90.0
+Hibernate: insert into booking (created_at,discount_percent,hotel_id,price,promo_code,user_id) values (?,?,?,?,?,?)
+
+# 5. Ошибка — неактивный пользователь
+
+2025-09-06T10:01:34.857Z  INFO 1 --- [io-8080-exec-10] c.h.monolith.service.BookingService      : Creating booking: userId=test-user-0, hotelId=test-hotel-1, promoCode=null
+Hibernate: select au1_0.id,au1_0.active,au1_0.blacklisted,au1_0.city,au1_0.email,au1_0.name,au1_0.status from app_user au1_0 where au1_0.id=?
+2025-09-06T10:01:34.858Z  WARN 1 --- [io-8080-exec-10] c.h.monolith.service.BookingService      : User test-user-0 is inactive
+2025-09-06T10:01:34.860Z ERROR 1 --- [io-8080-exec-10] o.a.c.c.C.[.[.[/].[dispatcherServlet]    : Servlet.service() for servlet [dispatcherServlet] in context with path [] threw exception [Request processing failed: java.lang.IllegalArgumentException: User is inactive] with root cause
+
+java.lang.IllegalArgumentException: User is inactive
+        at ...
+
+# 6. Ошибка — отель не доверенный
+
+Отель test-hotel-3 также в состоянии not operational, эта проверка сработала раньше довернности.
+
+2025-09-06T10:01:34.873Z  INFO 1 --- [nio-8080-exec-1] c.h.monolith.service.BookingService      : Creating booking: userId=test-user-2, hotelId=test-hotel-3, promoCode=null
+Hibernate: select au1_0.id,au1_0.active,au1_0.blacklisted,au1_0.city,au1_0.email,au1_0.name,au1_0.status from app_user au1_0 where au1_0.id=?
+Hibernate: select h1_0.id,h1_0.city,h1_0.description,h1_0.fully_booked,h1_0.operational,h1_0.rating from hotel h1_0 where h1_0.id=?
+2025-09-06T10:01:34.875Z  WARN 1 --- [nio-8080-exec-1] c.h.monolith.service.BookingService      : Hotel test-hotel-3 is not operational
+2025-09-06T10:01:34.875Z ERROR 1 --- [nio-8080-exec-1] o.a.c.c.C.[.[.[/].[dispatcherServlet]    : Servlet.service() for servlet [dispatcherServlet] in context with path [] threw exception [Request processing failed: java.lang.IllegalArgumentException: Hotel is not operational] with root cause
+
+java.lang.IllegalArgumentException: Hotel is not operational
+        at ...
+
+# 7. Ошибка — отель полностью забронирован
+
+Отель test-hotel-2 также не проходит проверку на доверенность, эта проверка сработала раньше наполнения.
+
+2025-09-06T10:01:34.882Z  INFO 1 --- [nio-8080-exec-2] c.h.monolith.service.BookingService      : Creating booking: userId=test-user-2, hotelId=test-hotel-2, promoCode=null
+Hibernate: select au1_0.id,au1_0.active,au1_0.blacklisted,au1_0.city,au1_0.email,au1_0.name,au1_0.status from app_user au1_0 where au1_0.id=?
+Hibernate: select h1_0.id,h1_0.city,h1_0.description,h1_0.fully_booked,h1_0.operational,h1_0.rating from hotel h1_0 where h1_0.id=?
+Hibernate: select r1_0.id,r1_0.created_at,r1_0.hotel_id,r1_0.rating,r1_0.text,r1_0.user_id from review r1_0 where r1_0.hotel_id=?
+2025-09-06T10:01:34.885Z  WARN 1 --- [nio-8080-exec-2] c.h.monolith.service.BookingService      : Hotel test-hotel-2 is not trusted
+2025-09-06T10:01:34.885Z ERROR 1 --- [nio-8080-exec-2] o.a.c.c.C.[.[.[/].[dispatcherServlet]    : Servlet.service() for servlet [dispatcherServlet] in context with path [] threw exception [Request processing failed: java.lang.IllegalArgumentException: Hotel is not trusted based on reviews] with root cause
+
+java.lang.IllegalArgumentException: Hotel is not trusted based on reviews
+        at ...

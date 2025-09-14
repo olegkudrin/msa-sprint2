@@ -1,0 +1,31 @@
+@startuml Inter_Container
+
+title Система после миграции сервиса отзывов
+
+!include <C4/C4_Container>
+
+System_Boundary(Hotelio, "Проект Hotelio") {
+  Container(Monolith, "Монолит", "Java Spring Boot")
+  ContainerDb(MonolithDb, "База монолита", "Postgres")
+  Rel(Monolith, MonolithDb, "Хранит данные", "Протокол Postgres")
+
+  Container(ReviewService, "Сервис\nотзывов", "Java Spring Boot")
+  ContainerDb(ReviewDb, "База отзывов", "Postgres")
+  Rel(ReviewService, ReviewDb, "Хранит данные", "Протокол Postgres")
+
+  Container(ReverseProxy, "Обратный прокси-сервер", "Nginx")
+  Rel(ReverseProxy, ReviewService, "Переадресует", "REST API")
+  Rel(ReverseProxy, Monolith, "Переадресует", "REST API")
+
+  Rel(Monolith, ReviewService, "Вызывает", "gRPC")
+
+  ContainerQueue(Broker, "Брокер\nсообщений", "Kafka")
+  Container(StatisticService, "Сервис\nстатистики", "Java Spring Boot")
+  Rel(StatisticService, Broker, "Читает данные для формирования статистики", "Протокол Kafka")
+  Rel(ReviewService, Broker, "Публикует значимые события", "Протокол Kafka")
+}
+
+Person(User, "Пользователь")
+Rel(User, ReverseProxy, "Использует", "REST API")
+
+@enduml

@@ -1,0 +1,8 @@
+confluent-kafka
+grpcio
+orjson
+protobuf
+psycopg[binary]
+pydantic-settings
+requests
+sqlalchemy

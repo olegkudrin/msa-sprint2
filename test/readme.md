@@ -1,6 +1,6 @@
 # ✅ Регрессионные тесты Hotelio
 
-Этот каталог содержит **автоматические тесты**, проверяющие корректность REST API до и после миграции.  
+Этот каталог содержит **автоматические тесты**, проверяющие корректность REST API до и после миграции.
 Они помогают убедиться, что система работает стабильно при любых изменениях архитектуры или кода.
 
 ---
@@ -49,9 +49,9 @@
 ```bash
 cd test/
 docker build -t hotelio-tester .
-docker run --rm \                                                                                                                                                                   ok | 4s | 01:49:56
+docker run --rm \
   -e DB_HOST=host.docker.internal \
-  -e DB_PORT=5432 \
+  -e DB_PORT=5433 \
   -e DB_NAME=hotelio \
   -e DB_USER=hotelio \
   -e DB_PASSWORD=hotelio \
@@ -59,3 +59,16 @@ docker run --rm \                                                               
   hotelio-tester
 ```
 
+### Запуск без контейнеров на локальной базе
+
+```bash
+psql -U hotelio -f init-fixtures.sql
+
+DB_HOST=localhost \
+DB_PORT=5432 \
+DB_NAME=hotelio \
+DB_USER=hotelio \
+DB_PASSWORD=hotelio \
+API_URL=http://localhost:8080 \
+./regress.sh
+```

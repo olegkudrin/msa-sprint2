@@ -1,0 +1,33 @@
+Выдержки из лога сервиса monolith по тестам бронирования
+--------------------------------------------------------
+
+Вызовы поступают по HTTP со стороны regress.sh.
+
+docker compose logs --no-log-prefix monolith
+
+Успешные вызовы никак не отображаются в логе монолита.
+
+# 5. Ошибка — неактивный пользователь
+
+2025-09-06T07:44:48.887Z ERROR 1 --- [nio-8080-exec-8] o.a.c.c.C.[.[.[/].[dispatcherServlet]    : Servlet.service() for servlet [dispatcherServlet] in context with path [] threw exception [Request processing failed: io.grpc.StatusRuntimeException: UNKNOWN: Exception calling application: User is inactive] with root cause
+
+io.grpc.StatusRuntimeException: UNKNOWN: Exception calling application: User is inactive
+    at ...
+
+# 6. Ошибка — отель не доверенный
+
+Отель test-hotel-3 также в состоянии not operational, эта проверка сработала раньше довернности.
+
+2025-09-06T07:44:48.914Z ERROR 1 --- [nio-8080-exec-7] o.a.c.c.C.[.[.[/].[dispatcherServlet]    : Servlet.service() for servlet [dispatcherServlet] in context with path [] threw exception [Request processing failed: io.grpc.StatusRuntimeException: UNKNOWN: Exception calling application: Hotel is not operational] with root cause
+
+io.grpc.StatusRuntimeException: UNKNOWN: Exception calling application: Hotel is not operational
+    at ...
+
+# 7. Ошибка — отель полностью забронирован
+
+Отель test-hotel-2 также не проходит проверку на доверенность, эта проверка сработала раньше наполнения.
+
+2025-09-06T07:44:48.935Z ERROR 1 --- [nio-8080-exec-9] o.a.c.c.C.[.[.[/].[dispatcherServlet]    : Servlet.service() for servlet [dispatcherServlet] in context with path [] threw exception [Request processing failed: io.grpc.StatusRuntimeException: UNKNOWN: Exception calling application: Hotel is not trusted] with root cause
+
+io.grpc.StatusRuntimeException: UNKNOWN: Exception calling application: Hotel is not trusted
+    at ...

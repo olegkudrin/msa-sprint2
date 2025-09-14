@@ -48,7 +48,7 @@ task4/
 - Значения из values.yaml:
 	- replicaCount
 	- image.name, image.tag, image.pullPolicy
-	- env[] — переменные окружения	
+	- env[] — переменные окружения
 	- resources — requests и limits
 	- ENABLE_FEATURE_X — фича-флаг
 

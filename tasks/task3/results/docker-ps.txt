@@ -1,0 +1,6 @@
+docker compose ps
+
+NAME                       IMAGE                    COMMAND                  SERVICE            CREATED          STATUS          PORTS
+task3-apollo-gateway-1     task3-apollo-gateway     "docker-entrypoint.s…"   apollo-gateway     55 seconds ago   Up 55 seconds   0.0.0.0:4000->4000/tcp, [::]:4000->4000/tcp
+task3-booking-subgraph-1   task3-booking-subgraph   "docker-entrypoint.s…"   booking-subgraph   55 seconds ago   Up 55 seconds   0.0.0.0:4001->4001/tcp, [::]:4001->4001/tcp
+task3-hotel-subgraph-1     task3-hotel-subgraph     "docker-entrypoint.s…"   hotel-subgraph     55 seconds ago   Up 55 seconds   0.0.0.0:4002->4002/tcp, [::]:4002->4002/tcp

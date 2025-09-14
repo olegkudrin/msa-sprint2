@@ -1,0 +1,16 @@
+▶️ Testing fallback route...
+Before kill: pong
+Scaling v1 to 0 replicas to force failure...
+deployment.apps/booking-service-v1 scaled
+Waiting for v1 pods to terminate...
+Attempt 1: no healthy upstream
+Attempt 2: no healthy upstream
+Attempt 3: no healthy upstream
+Attempt 4: no healthy upstream
+Attempt 5: no healthy upstream
+Attempt 6: no healthy upstream
+Attempt 7: no healthy upstream
+Attempt 8: pong-v2
+✔️ Fallback to v2 works
+Restoring v1 replicas to 1...
+deployment.apps/booking-service-v1 scaled

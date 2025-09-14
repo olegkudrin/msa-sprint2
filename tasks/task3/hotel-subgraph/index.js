@@ -3,6 +3,15 @@ import { startStandaloneServer } from '@apollo/server/standalone';
 import { buildSubgraphSchema } from '@apollo/subgraph';
 import gql from 'graphql-tag';
 
+// Mock hotel data
+const hotels = [
+  { id: '1', name: 'Grand Hotel Moscow', city: 'Moscow', stars: 5 },
+  { id: '2', name: 'Hotel Europe', city: 'St. Petersburg', stars: 4 },
+  { id: '3', name: 'Radisson Blu', city: 'Moscow', stars: 4 },
+  { id: '4', name: 'Astoria Hotel', city: 'St. Petersburg', stars: 5 },
+  { id: '5', name: 'Metropol Hotel', city: 'Moscow', stars: 5 }
+];
+
 const typeDefs = gql`
   type Hotel @key(fields: "id") {
     id: ID!
@@ -19,12 +28,15 @@ const typeDefs = gql`
 const resolvers = {
   Hotel: {
     __resolveReference: async ({ id }) => {
-      // TODO: Реальный вызов к hotel-сервису или заглушка
+      // Find hotel by ID from mock data
+      const hotel = hotels.find(h => h.id === id);
+      return hotel || null;
     },
   },
   Query: {
     hotelsByIds: async (_, { ids }) => {
-      // TODO: Заглушка или REST-запрос
+      // Filter hotels by provided IDs
+      return hotels.filter(hotel => ids.includes(hotel.id));
     },
   },
 };

@@ -1,0 +1,15 @@
+# Генерация кода grpc/protobuf
+
+uv pip install grpc-tools
+
+python -m grpc_tools.protoc -I. \
+--python_out=. --pyi_out=. --grpc_python_out=. \
+booking.proto
+
+# Добавляем сеть
+
+docker network create hotelio-net
+
+# Сборка с кэшированием pip
+
+DOCKER_BUILDKIT=1 docker compose up --build -d

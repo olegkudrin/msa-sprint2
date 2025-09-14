@@ -1,0 +1,46 @@
+@startuml ToBe_Container
+
+title Целевое состояние системы
+
+!include <C4/C4_Container>
+
+System_Boundary(Hotelio, "Проект Hotelio") {
+  Container(AppUserService, "Сервис\nпользователей", "Java Spring Boot")
+  Container(HotelService, "Сервис\nотелей", "Java Spring Boot")
+  Container(ReviewService, "Сервис\nотзывов", "Java Spring Boot")
+  Container(PromocodeService, "Сервис\nпромокодов", "Java Spring Boot")
+  Container(BookingService, "Сервис\nбронирования", "Java Spring Boot")
+
+  Container(ReverseProxy, "Обратный прокси-сервер", "Nginx")
+  Rel(ReverseProxy, AppUserService, "Переадресует", "REST API")
+  Rel(ReverseProxy, HotelService, "Переадресует", "REST API")
+  Rel(ReverseProxy, ReviewService, "Переадресует", "REST API")
+  Rel(ReverseProxy, PromocodeService, "Переадресует", "REST API")
+  Rel(ReverseProxy, BookingService, "Переадресует", "REST API")
+
+  Rel(BookingService, AppUserService, "Вызывает", "gRPC")
+  Rel(BookingService, HotelService, "Вызывает", "gRPC")
+  Rel(BookingService, ReviewService, "Вызывает", "gRPC")
+  Rel(BookingService, PromocodeService, "Вызывает", "gRPC")
+  Rel(PromocodeService, AppUserService, "Вызывает", "gRPC")
+
+  ContainerQueue(Broker, "Брокер\nсообщений", "Kafka")
+  Container(StatisticService, "Сервис\nстатистики", "Java Spring Boot")
+  Rel(StatisticService, Broker, "Читает данные для формирования статистики", "Протокол Kafka")
+
+  Container(BFF, "Бэкенд для\nфронтенда", "NodeJS")
+  Rel(BFF, ReverseProxy, "Обращается", "REST API")
+
+  note as N1
+    У каждого из сервисов запускается своя независимая база данных Postgres (не изображено для упрощения)
+  end note
+
+  note as N2
+    Все сервисы публикуют значимые события в брокер сообщений (не изображено для упрощения)
+  end note
+}
+
+Person(User, "Пользователь")
+Rel(User, BFF, "Использует", "REST API")
+
+@enduml
