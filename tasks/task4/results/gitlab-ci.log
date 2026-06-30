@@ -1,0 +1,101 @@
+gitlab-ci-local build test deploy tag
+
+----------------------------------------------------------
+
+parsing and downloads finished in 34 ms.
+json schema validated in 78 ms
+build  starting shell (build)
+build  $ echo "Building Docker image..."
+build  > Building Docker image...
+build  $ cd booking-service
+build  $ docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
+build  > #0 building with "orbstack" instance using docker driver
+build  >
+build  > #1 [internal] load build definition from Dockerfile
+build  > #1 transferring dockerfile: 466B done
+build  > #1 DONE 0.0s
+build  >
+build  > #2 [internal] load metadata for docker.io/library/golang:1.21-alpine
+build  > #2 DONE 2.1s
+build  >
+build  > #3 [internal] load .dockerignore
+build  > #3 transferring context: 2B done
+build  > #3 DONE 0.0s
+build  >
+build  > #4 [1/7] FROM docker.io/library/golang:1.21-alpine@sha256:2414035b086e3c42b99654c8b26e6f5b1b1598080d65fd03c7f499552ff4dc94
+build  > #4 DONE 0.0s
+build  >
+build  > #5 [internal] load build context
+build  > #5 transferring context: 61B done
+build  > #5 DONE 0.0s
+build  >
+build  > #6 [2/7] RUN apk add --no-cache curl
+build  > #6 CACHED
+build  >
+build  > #7 [3/7] WORKDIR /app
+build  > #7 CACHED
+build  >
+build  > #8 [4/7] COPY main.go .
+build  > #8 CACHED
+build  >
+build  > #9 [5/7] COPY check-dns.sh .
+build  > #9 CACHED
+build  >
+build  > #10 [6/7] RUN chmod +x check-dns.sh
+build  > #10 CACHED
+build  >
+build  > #11 [7/7] RUN go build -o booking-service main.go
+build  > #11 CACHED
+build  >
+build  > #12 exporting to image
+build  > #12 exporting layers done
+build  > #12 writing image sha256:b62e2d65b47645f4e9549f8466c72075593d56540428395288d7f121ff61fd66 done
+build  > #12 naming to docker.io/library/booking-service:latest done
+build  > #12 DONE 0.0s
+build  $ echo "Docker image built successfully"
+build  > Docker image built successfully
+build  finished in 2.53 s
+test   starting shell (test)
+test   $ echo "Testing Docker container..."
+test   > Testing Docker container...
+test   $ docker run --rm -d -p 8080:8080 --name test-container ${IMAGE_NAME}:${IMAGE_TAG}
+test   > 56446ecc99ba49f26e8f2ab5d6f31b3b9e56df1d7d07be10b25acfc0bf967d85
+test   $ sleep 5
+test   $ curl --fail http://localhost:8080/ping || exit 1
+test   >   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+test   >                                  Dload  Upload   Total   Spent    Left  Speed
+100     4  100     4    0     0   1648      0 --:--:-- --:--:-- --:--:--  2000
+test   > pong<gclShellPromptPlaceholder> echo "Health check passed"
+test   > Health check passed
+test   $ docker stop test-container || true
+test   > test-container
+test   $ echo "Tests completed"
+test   > Tests completed
+test   finished in 5.3 s
+deploy starting shell (deploy)
+deploy $ echo "Deploying to Kubernetes..."
+deploy > Deploying to Kubernetes...
+deploy $ helm upgrade --install booking-service ./helm/booking-service --wait
+deploy > Release "booking-service" has been upgraded. Happy Helming!
+deploy > NAME: booking-service
+deploy > LAST DEPLOYED: Sun Sep  7 20:17:15 2025
+deploy > NAMESPACE: default
+deploy > STATUS: deployed
+deploy > REVISION: 4
+deploy > TEST SUITE: None
+deploy $ echo "Deployment completed"
+deploy > Deployment completed
+deploy finished in 245 ms
+tag    starting shell (tag)
+tag    $ echo "Creating git tag..."
+tag    > Creating git tag...
+tag    $ TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+tag    $ git tag release-${TIMESTAMP}
+tag    $ echo "Created tag"
+tag    > Created tag
+tag    finished in 15 ms
+
+ PASS  build
+ PASS  test
+ PASS  deploy
+ PASS  tag

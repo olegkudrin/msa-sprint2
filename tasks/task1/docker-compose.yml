@@ -1,4 +1,4 @@
-version: "3.8"
+# version: "3.8"
 
 services:
   monolith:
@@ -23,7 +23,7 @@ services:
       POSTGRES_PASSWORD: hotelio
       POSTGRES_DB: hotelio
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - monolith-db-data:/var/lib/postgresql/data
     networks:

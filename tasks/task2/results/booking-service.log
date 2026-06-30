@@ -1,0 +1,125 @@
+Выдержки из лога сервиса booking-service по тестам бронирования
+---------------------------------------------------------------
+
+Вызовы поступают по gRPC со стороны монолита.
+
+docker compose logs --no-log-prefix booking-service
+
+# 1. Получение всех бронирований
+
+Отключен как нерабочий в коде монолита.
+
+# 2. Получение бронирований пользователя
+
+2025-09-06 07:44:48,787 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+2025-09-06 07:44:48,789 INFO sqlalchemy.engine.Engine SELECT booking.id, booking.user_id, booking.hotel_id, booking.promo_code, booking.discount_percent, booking.price, booking.created_at
+FROM booking
+WHERE booking.user_id = %(user_id_1)s::VARCHAR ORDER BY booking.created_at
+INFO:sqlalchemy.engine.Engine:SELECT booking.id, booking.user_id, booking.hotel_id, booking.promo_code, booking.discount_percent, booking.price, booking.created_at
+FROM booking
+WHERE booking.user_id = %(user_id_1)s::VARCHAR ORDER BY booking.created_at
+2025-09-06 07:44:48,789 INFO sqlalchemy.engine.Engine [generated in 0.00032s] {'user_id_1': 'test-user-2'}
+INFO:sqlalchemy.engine.Engine:[generated in 0.00032s] {'user_id_1': 'test-user-2'}
+2025-09-06 07:44:48,791 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:sqlalchemy.engine.Engine:ROLLBACK
+
+# 3. Успешное бронирование отеля без промо
+
+INFO:root:Creating booking: user_id=test-user-3, hotel_id=test-hotel-1, promo_code=
+INFO:root:Final price calculated: base=80.0, discount=0.0, final=80.0
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+2025-09-06 07:44:48,829 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2025-09-06 07:44:48,830 INFO sqlalchemy.engine.Engine INSERT INTO booking (user_id, hotel_id, promo_code, discount_percent, price) VALUES (%(user_id)s::VARCHAR, %(hotel_id)s::VARCHAR, %(promo_code)s::VARCHAR, %(discount_percent)s, %(price)s) RETURNING booking.id, booking.created_at
+INFO:sqlalchemy.engine.Engine:INSERT INTO booking (user_id, hotel_id, promo_code, discount_percent, price) VALUES (%(user_id)s::VARCHAR, %(hotel_id)s::VARCHAR, %(promo_code)s::VARCHAR, %(discount_percent)s, %(price)s) RETURNING booking.id, booking.created_at
+2025-09-06 07:44:48,830 INFO sqlalchemy.engine.Engine [generated in 0.00008s] {'user_id': 'test-user-3', 'hotel_id': 'test-hotel-1', 'promo_code': '', 'discount_percent': 0.0, 'price': 80.0}
+INFO:sqlalchemy.engine.Engine:[generated in 0.00008s] {'user_id': 'test-user-3', 'hotel_id': 'test-hotel-1', 'promo_code': '', 'discount_percent': 0.0, 'price': 80.0}
+2025-09-06 07:44:48,830 INFO sqlalchemy.engine.Engine COMMIT
+INFO:sqlalchemy.engine.Engine:COMMIT
+2025-09-06 07:44:48,833 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+2025-09-06 07:44:48,833 INFO sqlalchemy.engine.Engine SELECT booking.id AS booking_id, booking.user_id AS booking_user_id, booking.hotel_id AS booking_hotel_id, booking.promo_code AS booking_promo_code, booking.discount_percent AS booking_discount_percent, booking.price AS booking_price, booking.created_at AS booking_created_at
+FROM booking
+WHERE booking.id = %(pk_1)s::INTEGER
+INFO:sqlalchemy.engine.Engine:SELECT booking.id AS booking_id, booking.user_id AS booking_user_id, booking.hotel_id AS booking_hotel_id, booking.promo_code AS booking_promo_code, booking.discount_percent AS booking_discount_percent, booking.price AS booking_price, booking.created_at AS booking_created_at
+FROM booking
+WHERE booking.id = %(pk_1)s::INTEGER
+2025-09-06 07:44:48,833 INFO sqlalchemy.engine.Engine [generated in 0.00006s] {'pk_1': 3}
+INFO:sqlalchemy.engine.Engine:[generated in 0.00006s] {'pk_1': 3}
+2025-09-06 07:44:48,834 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:sqlalchemy.engine.Engine:ROLLBACK
+
+# 4. Успешное бронирование с промо
+
+INFO:root:Creating booking: user_id=test-user-2, hotel_id=test-hotel-1, promo_code=TESTCODE1
+INFO:root:Final price calculated: base=100.0, discount=10.0, final=90.0
+2025-09-06 07:44:48,871 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:INSERT INTO booking (user_id, hotel_id, promo_code, discount_percent, price) VALUES (%(user_id)s::VARCHAR, %(hotel_id)s::VARCHAR, %(promo_code)s::VARCHAR, %(discount_percent)s, %(price)s) RETURNING booking.id, booking.created_at
+2025-09-06 07:44:48,872 INFO sqlalchemy.engine.Engine INSERT INTO booking (user_id, hotel_id, promo_code, discount_percent, price) VALUES (%(user_id)s::VARCHAR, %(hotel_id)s::VARCHAR, %(promo_code)s::VARCHAR, %(discount_percent)s, %(price)s) RETURNING booking.id, booking.created_at
+INFO:sqlalchemy.engine.Engine:[cached since 0.04186s ago] {'user_id': 'test-user-2', 'hotel_id': 'test-hotel-1', 'promo_code': 'TESTCODE1', 'discount_percent': 10.0, 'price': 90.0}
+2025-09-06 07:44:48,872 INFO sqlalchemy.engine.Engine [cached since 0.04186s ago] {'user_id': 'test-user-2', 'hotel_id': 'test-hotel-1', 'promo_code': 'TESTCODE1', 'discount_percent': 10.0, 'price': 90.0}
+2025-09-06 07:44:48,872 INFO sqlalchemy.engine.Engine COMMIT
+INFO:sqlalchemy.engine.Engine:COMMIT
+2025-09-06 07:44:48,874 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2025-09-06 07:44:48,874 INFO sqlalchemy.engine.Engine SELECT booking.id AS booking_id, booking.user_id AS booking_user_id, booking.hotel_id AS booking_hotel_id, booking.promo_code AS booking_promo_code, booking.discount_percent AS booking_discount_percent, booking.price AS booking_price, booking.created_at AS booking_created_at
+FROM booking
+WHERE booking.id = %(pk_1)s::INTEGER
+2025-09-06 07:44:48,874 INFO sqlalchemy.engine.Engine [cached since 0.0405s ago] {'pk_1': 4}
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:SELECT booking.id AS booking_id, booking.user_id AS booking_user_id, booking.hotel_id AS booking_hotel_id, booking.promo_code AS booking_promo_code, booking.discount_percent AS booking_discount_percent, booking.price AS booking_price, booking.created_at AS booking_created_at
+FROM booking
+WHERE booking.id = %(pk_1)s::INTEGER
+INFO:sqlalchemy.engine.Engine:[cached since 0.0405s ago] {'pk_1': 4}
+2025-09-06 07:44:48,874 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:sqlalchemy.engine.Engine:ROLLBACK
+INFO:root:% Message delivered to booking_history [0] @ 0
+
+# 5. Ошибка — неактивный пользователь
+
+INFO:root:Creating booking: user_id=test-user-0, hotel_id=test-hotel-1, promo_code=
+WARNING:root:User test-user-0 is inactive
+ERROR:grpc._server:Exception calling application: User is inactive
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.12/site-packages/grpc/_server.py", line 610, in _call_behavior
+    response_or_iterator = behavior(argument, context)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/booking/service.py", line 42, in CreateBooking
+    self._validate_user(request.user_id)
+  File "/app/booking/service.py", line 84, in _validate_user
+    raise Exception("User is inactive")
+Exception: User is inactive
+
+# 6. Ошибка — отель не доверенный
+
+Отель test-hotel-3 также в состоянии not operational, эта проверка сработала раньше довернности.
+
+INFO:root:Creating booking: user_id=test-user-2, hotel_id=test-hotel-3, promo_code=
+WARNING:root:Hotel test-hotel-3 is not operational
+ERROR:grpc._server:Exception calling application: Hotel is not operational
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.12/site-packages/grpc/_server.py", line 610, in _call_behavior
+    response_or_iterator = behavior(argument, context)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/booking/service.py", line 43, in CreateBooking
+    self._validate_hotel(request.hotel_id)
+  File "/app/booking/service.py", line 93, in _validate_hotel
+    raise Exception("Hotel is not operational")
+Exception: Hotel is not operational
+
+# 7. Ошибка — отель полностью забронирован
+
+Отель test-hotel-2 также не проходит проверку на доверенность, эта проверка сработала раньше наполнения.
+
+INFO:root:Creating booking: user_id=test-user-2, hotel_id=test-hotel-2, promo_code=
+WARNING:root:Hotel test-hotel-2 is not trusted
+ERROR:grpc._server:Exception calling application: Hotel is not trusted
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.12/site-packages/grpc/_server.py", line 610, in _call_behavior
+    response_or_iterator = behavior(argument, context)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/booking/service.py", line 43, in CreateBooking
+    self._validate_hotel(request.hotel_id)
+  File "/app/booking/service.py", line 97, in _validate_hotel
+    raise Exception("Hotel is not trusted")
+Exception: Hotel is not trusted
